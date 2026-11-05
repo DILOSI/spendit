@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spendit - Personal Expense Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">💳</div>
+        <div>
+          <h1>Spendit</h1>
+          <p class="subtitle">Personal Expense Tracker</p>
+        </div>
+      </div>
+      <div class="header-badge">
+        <span class="badge-label">Total Transactions</span>
+        <span id="total-tx-count" class="badge-count">0</span>
+      </div>
+    </header>
+
+    <!-- Overview Stats Cards -->
+    <section class="stats-grid" aria-label="Financial Summary">
+      <div class="stat-card balance-card">
+        <div class="stat-meta">
+          <span class="stat-label">Available Balance</span>
+          <span class="stat-icon">🏦</span>
+        </div>
+        <div id="stat-balance" class="stat-value">$0.00</div>
+        <div class="stat-subtext">Net savings to date</div>
+      </div>
+
+      <div class="stat-card income-card">
+        <div class="stat-meta">
+          <span class="stat-label">Total Income</span>
+          <span class="stat-icon income-icon">▲</span>
+        </div>
+        <div id="stat-income" class="stat-value text-income">+$0.00</div>
+        <div class="stat-subtext">All-time earnings</div>
+      </div>
+
+      <div class="stat-card expense-card">
+        <div class="stat-meta">
+          <span class="stat-label">Total Expenses</span>
+          <span class="stat-icon expense-icon">▼</span>
+        </div>
+        <div id="stat-expense" class="stat-value text-expense">-$0.00</div>
+        <div class="stat-subtext">All-time spending</div>
+      </div>
+    </section>
+
+    <!-- Monthly Spending Summary -->
+    <section class="card monthly-summary-card" aria-label="Monthly Summary">
+      <div class="card-header monthly-header">
+        <div>
+          <h2>Monthly Spending Summary</h2>
+          <p class="section-desc">Track spending and category breakdown by month</p>
+        </div>
+        <div class="month-selector-wrapper">
+          <label for="monthly-filter-input" class="sr-only">Select Month</label>
+          <input type="month" id="monthly-filter-input" aria-label="Filter month for summary">
+        </div>
+      </div>
+
+      <div class="monthly-metrics-grid">
+        <div class="monthly-metric-item">
+          <span class="metric-title">Month's Spending</span>
+          <span id="monthly-total-expense" class="metric-amount text-expense">$0.00</span>
+        </div>
+        <div class="monthly-metric-item">
+          <span class="metric-title">Month's Income</span>
+          <span id="monthly-total-income" class="metric-amount text-income">$0.00</span>
+        </div>
+        <div class="monthly-metric-item">
+          <span class="metric-title">Month's Net</span>
+          <span id="monthly-net-savings" class="metric-amount">$0.00</span>
+        </div>
+      </div>
+
+      <div id="monthly-category-breakdown" class="monthly-category-breakdown">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+    </section>
+
+    <!-- Main Content Grid (Add/Edit Form + Transactions List) -->
+    <main class="content-layout">
+      <!-- Form Section -->
+      <section class="card form-card" aria-label="Transaction Form">
+        <div class="card-header">
+          <h2 id="form-heading">Add Transaction</h2>
+          <p id="form-subheading" class="section-desc">Record a new income or expense</p>
+        </div>
+
+        <form id="transaction-form" novalidate>
+          <input type="hidden" id="edit-id">
+
+          <!-- Type Selector (Segmented buttons) -->
+          <div class="form-group">
+            <label class="form-label">Transaction Type</label>
+            <div class="type-toggle-group" role="radiogroup" aria-label="Transaction Type">
+              <label class="type-toggle-btn expense-btn">
+                <input type="radio" name="tx-type" value="Expense" checked>
+                <span>▼ Expense</span>
+              </label>
+              <label class="type-toggle-btn income-btn">
+                <input type="radio" name="tx-type" value="Income">
+                <span>▲ Income</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Transaction Name -->
+          <div class="form-group">
+            <label for="tx-name" class="form-label">Transaction Name</label>
+            <input 
+              type="text" 
+              id="tx-name" 
+              placeholder="e.g. Grocery store, Salary, Coffee" 
+              required
+              maxlength="60"
+              autocomplete="off"
+            >
+            <span class="field-error" id="name-error">Please enter a transaction name.</span>
+          </div>
+
+          <!-- Amount & Category Row -->
+          <div class="form-row">
+            <div class="form-group form-col">
+              <label for="tx-amount" class="form-label">Amount ($)</label>
+              <input 
+                type="number" 
+                id="tx-amount" 
+                placeholder="0.00" 
+                step="0.01" 
+                min="0.01" 
+                required
+              >
+              <span class="field-error" id="amount-error">Enter an amount greater than 0.</span>
+            </div>
+
+            <div class="form-group form-col">
+              <label for="tx-category" class="form-label">Category</label>
+              <select id="tx-category" required>
+                <option value="Food">Food</option>
+                <option value="Transport">Transport</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Bills">Bills</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Health">Health</option>
+                <option value="Salary">Salary</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Date -->
+          <div class="form-group">
+            <label for="tx-date" class="form-label">Date</label>
+            <input type="date" id="tx-date" required>
+            <span class="field-error" id="date-error">Please choose a valid date.</span>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="submit" id="submit-btn" class="btn btn-primary">Add Transaction</button>
+            <button type="button" id="cancel-edit-btn" class="btn btn-secondary hidden">Cancel Edit</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Transactions List Section -->
+      <section class="card list-card" aria-label="Transaction History">
+        <div class="card-header">
+          <div>
+            <h2>Transactions</h2>
+            <p class="section-desc">Your recorded activity</p>
+          </div>
+        </div>
+
+        <!-- Search and Filter Controls -->
+        <div class="filters-container">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="search" 
+              id="search-input" 
+              placeholder="Search by name..." 
+              aria-label="Search transactions"
+            >
+          </div>
+
+          <div class="filter-controls">
+            <div class="filter-select-wrapper">
+              <label for="filter-type" class="sr-only">Filter by type</label>
+              <select id="filter-type" aria-label="Filter by type">
+                <option value="ALL">All Types</option>
+                <option value="Income">Income only</option>
+                <option value="Expense">Expense only</option>
+              </select>
+            </div>
+
+            <div class="filter-select-wrapper">
+              <label for="filter-category" class="sr-only">Filter by category</label>
+              <select id="filter-category" aria-label="Filter by category">
+                <option value="ALL">All Categories</option>
+                <option value="Food">Food</option>
+                <option value="Transport">Transport</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Bills">Bills</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Health">Health</option>
+                <option value="Salary">Salary</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <button type="button" id="reset-filters-btn" class="btn-text hidden" title="Clear all search and filter options">
+              Clear filters
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter stats / active summary banner -->
+        <div id="filter-info-bar" class="filter-info-bar hidden">
+          <span id="filter-count-text">Showing 0 of 0 transactions</span>
+        </div>
+
+        <!-- Transaction Items Container -->
+        <div id="transactions-container" class="transactions-container">
+          <!-- Dynamically populated or empty state -->
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>Spendit &bull; All data stays secure in your browser's local storage.</p>
+    </footer>
+  </div>
+
+  <!-- Delete Confirmation Modal Dialog -->
+  <div id="confirm-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-title">Confirm Deletion</h3>
+      </div>
+      <div class="modal-body">
+        <p id="modal-message">Are you sure you want to delete this transaction?</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="modal-confirm-btn" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
